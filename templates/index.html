@@ -11,7 +11,7 @@
             <div class="col-12 p-0 m-0 position-absolute" style="right: 0;">
                 <div class="card border-0 rounded" style="box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.10), 0 6px 10px 0 rgba(0, 0, 0, 0.01); overflow: hidden; height: 80vh;">
                     <div class="card-header p-3 bg-light border border-top-0 border-left-0 border-right-0" style="color: rgba(96, 125, 139,1.0);">
-                        <i class="fas fa-robot float-left fa-2x mx-2" style="width: 50px; height: 50px;"></i>
+                        <i class="fas fa-crown float-left fa-2x mx-2" style="width: 50px; height: 50px;"></i>
                         <h6 class="float-left" style="margin: 0px; margin-left: 10px;"> ThinkB <i class="fa fa-check text-primary" title="Onaylanmış Hesap!" aria-hidden="true"></i> </br><small> Hello, Ask me anything.</small></h6>
                         <div class="dropdown show">
                             <a id="dropdownMenuLink" data-toggle="dropdown" class="btn btn-sm float-right text-secondary" role="button"><h5><i class="fa fa-ellipsis-h" title="Ayarlar!" aria-hidden="true"></i>&nbsp;</h5></a>
@@ -24,15 +24,15 @@
                     </div>
                     <div class="card bg-sohbet border-0 m-0 p-0" style="height: 80vh;">
                         <div id="sohbet" class="card border-0 m-0 p-0 position-relative bg-transparent" style="overflow-y: auto; height: 100vh;">
-                            <div class="balon2 p-2 m-0 position-relative" data-is="ThinkB - 3:22 pm">
-                                <a class="float-left sohbet2"> 안녕하세요~ ThinkB랑 놀아주세요 :) </a>
+                            <div class="balon2 p-2 m-0 position-relative" data-is="ThinkB - {{time}}">
+                                <a class="float-left sohbet2"> 안녕하세요~ ThinkB랑 같이 놀아요 :) </a>
                             </div>
                             {% if comments %}
                                 {% for i in comments %}
-                                    <div class="balon1 p-2 m-0 position-relative" data-is="You - 3:20 pm">
+                                    <div class="balon1 p-2 m-0 position-relative" data-is="You - {{time}}">
                                         <a class="float-right">{{i}}</a>
                                     </div>
-                                    <div class="balon2 p-2 m-0 position-relative" data-is="ThinkB - 3:22 pm">
+                                    <div class="balon2 p-2 m-0 position-relative" data-is="ThinkB - {{time}}">
                                         <a class="float-left sohbet2"> "{{i}}"에 대한 대답 생각 중... </a>
                                     </div>
                                 {% endfor %}
