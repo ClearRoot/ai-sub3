@@ -86,9 +86,9 @@ def index():
 	return render_template('index.html')
 
 
-comments = []
 @app.route('/chat', methods = ['POST', 'GET'])
 def chat():
+    comments = []
     if request.method == 'POST':
         text = request.form['text']
         answer = predict(text)
