@@ -24,23 +24,23 @@
                     </div>
                     <div class="card bg-sohbet border-0 m-0 p-0" style="height: 80vh;">
                         <div id="sohbet" class="card border-0 m-0 p-0 position-relative bg-transparent" style="overflow-y: auto; height: 100vh;">
-                            <div class="balon2 p-2 m-0 position-relative" data-is="ThinkB - {{time}}">
+                            <div class="balon2 p-2 m-0 position-relative" data-is="ThinkB">
                                 <a class="float-left sohbet2"> 안녕하세요~ ThinkB랑 같이 놀아요 :) </a>
                             </div>
                             {% if comments %}
                                 {% for i in comments %}
-                                    <div class="balon1 p-2 m-0 position-relative" data-is="You - {{time}}">
-                                        <a class="float-right">{{i}}</a>
+                                    <div class="balon1 p-2 m-0 position-relative" data-is="You">
+                                        <a class="float-right">{{i["text"]}}</a>
                                     </div>
-                                    <div class="balon2 p-2 m-0 position-relative" data-is="ThinkB - {{time}}">
-                                        <a class="float-left sohbet2"> "{{i}}"에 대한 대답 생각 중... </a>
+                                    <div class="balon2 p-2 m-0 position-relative" data-is="ThinkB">
+                                        <a class="float-left sohbet2"> "{{i["answer"]}}"</a>
                                     </div>
                                 {% endfor %}
                             {% endif %}
                         </div>
                     </div>
                     <div class="w-100 card-footer p-0 bg-light border border-bottom-0 border-left-0 border-right-0">
-                        <form class="m-0 p-0" action="/" method="POST" autocomplete="off">
+                        <form class="m-0 p-0" method="POST" autocomplete="off">
                             <div class="row m-0 p-0">
                             <div class="col-9 m-0 p-1">
                                 <input id="text" class="mw-100 border rounded form-control" type="text" name="text" title="text" placeholder="ThinkB에게 말을 걸어주세요~" required>
