@@ -101,9 +101,5 @@ def chat():
     elif request.method == 'GET':
         return render_template('chat.html', comment=comments)
 
-@app.route('/about')
-def about():
-	return render_template('about.html')
-
 if __name__ == '__main__':
     app.run()
