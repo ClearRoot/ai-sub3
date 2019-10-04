@@ -1,8 +1,24 @@
 body {
-    background-image: url("bg2.png");
-    background-color: linear-gradient(120deg, #7bc6cc, #be93c5);
-   
+    background-color:#ffe55f!important;
+    background-image: url('pupper.gif');
+    background-repeat: no-repeat;
+    background-position: 91% 128%;
+    background-size: 300px;
+    /* background-position: right bottom; */
+    /* background-color: linear-gradient(to right, #7bc6cc, #be93c5); */
+    /* background-color: linear-gradient(120deg, #7bc6cc, #be93c5); */
     padding: 10em 0;
+
+    animation-name: poodle;
+  animation-duration:4s;
+    animation-duration: leaner;
+  /* animation-iteration-count:3; */
+    animation-direction:alternate;
+    animation-fill-mode: forwards;
+}
+@-webkit-keyframes poodle {
+    0%   {background-position: 3% 128%;}
+    100% {background-position: 91% 128%;}
 }
 
 h1 {
