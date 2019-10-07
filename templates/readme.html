@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <div style="margin: 30px;">
+        <h1 id="sub-pjt-3-">Sub PJT 3. 딥 러닝 모델을 이용한 챗봇 구현</h1>
+        <p>텍스트 전 처리 기법과 머신러닝 기법을 응용하여 딥 러닝 기반의 챗봇을 구현</p>
+        <p>팀원: 조호근, 김훈, 양시영, 안현상, 김초희, 이지선</p>
+        <p>프로젝트 기간:  2019/09/09 ~ 2019/09/26</p>
+        <h2 id="-">목표</h2>
+        <ul>
+            <li>질문과 대답으로 이루어진 데이터를 읽고 트레이닝 데이터와 테스트 데이터로 저장하기</li>
+            <li>Noise Canceling, Tokenizing 하기</li>
+            <li>token 사전 vocabularyData.voc 파일 만들기</li>
+            <li>인코딩, 디코딩용 함수 만들기</li>
+            <li>Seq2seq 모델을 이용해 학습하기</li>
+            <li>predict.py를 구현하여 새로운 질문에 대답 데이터 출력하기</li>
+            <li>Python Slack Client를 사용하여 Flask 서버 app.py 구현하기</li>
+            <li>Chatbot과 대화할 용도의 Web을 Flask 서버로 구현하기</li>
+        </ul>
+        <h2 id="learming-data">Learming Data</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Contents</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>데이터 이름</td>
+                    <td>Chatbot data</td>
+                </tr>
+                <tr>
+                    <td>데이터 용도</td>
+                    <td>한국어 챗봇 학습을 목적으로 사용한다.</td>
+                </tr>
+                <tr>
+                    <td>데이터 권한</td>
+                    <td>MIT 라이센스</td>
+                </tr>
+                <tr>
+                    <td>데이터 출처</td>
+                    <td><a href="https://github.com/songys/Chatbot_data">https://github.com/songys/Chatbot_data</a> (송영숙님)</td>
+                </tr>
+            </tbody>
+        </table>
+        <h3 id="wordcloud">WordCloud</h3>
+        <ul>
+            <li>Question Data</li>
+        </ul>
+        <p><img src="{{ url_for('static', filename='image/wordcloud_in.png') }}" alt=""></p>
+        <ul>
+            <li>Answer Data</li>
+        </ul>
+        <p><img src="{{ url_for('static', filename='image/wordcloud_out.png') }}" alt=""></p>
+        <h2 id="requirement">Requirement</h2>
+        <p>Python==3.7.4</p>
+        <p>Flask==0.12.2</p>
+        <p>konlpy==0.5.1</p>
+        <p>matplotlib==3.1.1</p>
+        <p>numpy==1.16.3</p>
+        <p>openpyxl==2.6.3</p>
+        <p>pandas==0.24.2</p>
+        <p>scikit-learn==0.20.3</p>
+        <p>scipy==1.2.1</p>
+        <p>slackclient==2.1.0</p>
+        <p>slackeventsapi==2.1.0</p>
+        <p>tensorboard==1.14.0</p>
+        <p>tensorflow-estimator==1.14.0</p>
+        <p>tensorflow-gpu==1.14.0</p>
+        <p>tqdm==4.36.0</p>
+        <p>wordcloud==1.5.0</p>
+        <p>xlrd==1.2.0</p>
+        <h2 id="directory-structure">Directory Structure</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Base 프로젝트</th>
+                    <th>설명</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Data_in/<br />    chatbotdata.csv<br />Data_out/<br />    vocabularyData.voc<br />check_point<br />Configs.py<br />Data.py<br />Main.py<br />Model.py<br />Predict.py<br />app.py<br />db_init.py<br />app.db</td>
+                    <td>- 트레이닝 데이터 영역<br />- 트레이닝 데이터 파일<br />- 출력 데이터 영역<br />- 단어 사전 파일<br />- 학습된 모델의 check_point 저장 공간<br />- 모델 설정 소스<br />- 전 처리 및 모델에 주입되는 데이터셋 구성<br />- 학습을 실행하는 소스<br />- tensorflow seq2seq 모델 소스<br />- 학습된 모델로 예측하는 소스<br />- Flask 서버 소스<br />- app.db 파일을 생성하는 소스<br />- SQLite로 생성된 db 파일</td>
+                </tr>
+            </tbody>
+        </table>
+        <h2 id="execution-result">Execution Result</h2>
+        <ul>
+            <li>Slack</li>
+        </ul>
+        <p><img src="{{ url_for('static', filename='image/slack.PNG') }}" alt=""></p>
+        <ul>
+            <li>Web</li>
+        </ul>
+        <p><img src="{{ url_for('static', filename='image/web.PNG') }}" alt=""></p>
+    </div>
+</body>
+<style>
+    img {
+        width: 70%;
+    };
+</style>
+</html>
