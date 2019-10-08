@@ -1,20 +1,24 @@
 <template>
-  <div style="height: 500px; width: 300px;">
-    <Chat 
-    :participants="participants"
-    :myself="myself"
-    :messages="messages"
-    :onType="onType"
-    :onMessageSubmit="onMessageSubmit"
-    :chatTitle="chatTitle"
-    :placeholder="placeholder"
-    :colors="colors"
-    :borderStyle="borderStyle"
-    :hideCloseButton="hideCloseButton"
-    :closeButtonIconSize="closeButtonIconSize"
-    :submitIconSize="submitIconSize"
-    :asyncMode="asyncMode"/>
-  </div>
+  <v-row class="ChatBody" align="center" justify="center">
+    <v-col cols="12" sm="8" md="5">
+      <div id="thinkB_chat">
+        <Chat 
+        :participants="participants"
+        :myself="myself"
+        :messages="messages"
+        :onType="onType"
+        :onMessageSubmit="onMessageSubmit"
+        :chatTitle="chatTitle"
+        :placeholder="placeholder"
+        :colors="colors"
+        :borderStyle="borderStyle"
+        :hideCloseButton="hideCloseButton"
+        :closeButtonIconSize="closeButtonIconSize"
+        :submitIconSize="submitIconSize"
+        :asyncMode="asyncMode"/>
+      </div>
+    </v-col>
+  </v-row>
 </template>
 
 <script>
@@ -25,7 +29,7 @@ export default {
   components: {
     Chat
   },
-  data(){
+  data() {
     return {
       participants: [
         {
@@ -50,8 +54,8 @@ export default {
       placeholder: 'send your message',
       colors:{
         header:{
-          bg: '#3162DE',
-          text: '#f1f1f1'
+          bg: '#558B2F',
+          text: '#fff',
         },
         message:{
           myself: {
@@ -59,14 +63,14 @@ export default {
             text: '#000'
           },
           others: {
-            bg: '#42a5f5',
+            bg: '#43A047',
             text: '#fff'
           },
           messagesDisplay: {
-              bg: '#f7f3f3'
+            bg: '#f7f3f3'
           }
         },
-        submitIcon: '#42a5f5'
+        submitIcon: '#558B2F'
       },
       borderStyle: {
         topLeft: "10px",
@@ -103,3 +107,19 @@ export default {
   }
 }
 </script>
+
+<style>
+  #thinkB_chat {
+    height: 500px;
+  }
+
+  .ChatBody {
+    height: 100vh;
+
+    background: lightblue;
+    background-image: url('../assets/poodle.png');
+    background-repeat: no-repeat;
+    background-position: 91% 90%;
+    background-size: 250px;
+  }
+</style>

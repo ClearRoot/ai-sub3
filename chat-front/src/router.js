@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import Chatbot from './views/Chatbot.vue';
+import HomePage from './views/HomePage.vue';
 
 Vue.use(Router);
 
@@ -10,8 +10,8 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'Chatbot',
-      component: Chatbot
+      name: 'HomePage',
+      component: HomePage
     },
   ],
 });
