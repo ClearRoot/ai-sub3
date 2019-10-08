@@ -1,8 +1,11 @@
 import Vue from 'vue'
 import App from './App.vue'
-import vuetify from './plugins/vuetify';
+import vuetify from './plugins/vuetify'
+import VueFullPage from 'vue-fullpage.js'
 
 import 'expose-loader?$!expose-loader?jQuery!jquery'
+
+Vue.use(VueFullPage);
 
 import router from './router';
 

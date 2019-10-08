@@ -1,7 +1,7 @@
 <template>
-    <v-row justify="center">
+    <v-row class="pt-12" justify="center">
         <section>
-            <div class="loading loading08 mb-5">
+            <div class="loading loading08 mt-12 pt-12 mb-5">
                 <span data-text="W">W</span>
                 <span data-text="E">E</span>
                 <span data-text="L">L</span>
@@ -11,7 +11,7 @@
                 <span data-text="E">E</span>
             </div>
             <v-container>
-                <div class="text-center mb-12">
+                <div class="test text-center mb-12">
                     <v-btn outlined color="grey darken-1">ThinkB랑 대화하러 가기</v-btn>
                     <a href="#"><span></span></a>
                 </div>
@@ -23,6 +23,13 @@
 <script>
 export default {
     name: "HomePage",
+    data () {
+        return {
+            clickbtn: false,
+        }
+    },
+    computed: {
+    },
     components: {
     },
 }
@@ -94,7 +101,7 @@ a {
 }
 a span {
   position: absolute;
-  top: 62vh;
+  top: 55vh;
   left: 50%;
   width: 24px;
   height: 24px;
