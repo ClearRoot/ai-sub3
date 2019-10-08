@@ -43,10 +43,10 @@ export default {
       },
       messages: [
         {
-          content: 'received messages', 
+          content: '안녕하세요 ThinkB입니다.', 
           myself: false,
           participantId: 1,
-          timestamp: { year: 2019, month: 3, day: 5, hour: 20, minute: 10, second: 3, millisecond: 123 },
+          timestamp: { year: 0, month: 0, day: 0, hour: 0, minute: 0, second: 0, millisecond: 0 },
           uploaded: true
         }
       ],
@@ -88,21 +88,31 @@ export default {
     onType: function (event){
       //here you can set any behavior
     },
-    onMessageSubmit: function(message){
-      /*
-      * example simulating an upload callback. 
-      * It's important to notice that even when your message wasn't send 
-      * yet to the server you have to add the message into the array
-      */
+    onMessageSubmit: async function(message){
+      message.content = message.content.replace(/\n/g, "")
+
+      const axios = require('axios')
+
+      let form = new FormData()
+      form.append('question', message["content"])
+
       this.messages.push(message)
-      
-      /*
-      * you can update message state after the server response
-      */
-      // timeout simulating the request
-      setTimeout(() => {
-        message.uploaded = true
-      }, 2000)
+
+      await axios.post('http://13.125.199.238:5000/chat', form)
+        .then( res => {
+          console.log(res["data"]["answer"])
+          let answer = {
+            content: res["data"]["answer"],
+            myself: false,
+            participantId: 1,
+            timestamp: { year: 0, month: 0, day: 0, hour: 0, minute: 0, second: 0, millisecond: 0 },
+            uploaded: true
+          }
+          this.messages.push(answer)
+          message.uploaded = true
+        }).catch( err => {
+          console.log(err)
+        })
     },
   }
 }
