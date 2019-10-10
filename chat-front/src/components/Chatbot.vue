@@ -142,7 +142,6 @@ export default {
 
       await axios.post('http://13.125.199.238:5000/chat', form)
         .then( res => {
-          console.log(res["data"]["answer"])
           let answer = {
             content: res["data"]["answer"],
             myself: false,
@@ -154,9 +153,10 @@ export default {
           message.uploaded = true
         }).catch( err => {
           console.log(err)
+          this.$swal('문제가 생겼어요!', '다음에 다시 대화해요!', 'error')
         })
     },
-    createData: function() {
+    createData: async function() {
       if (this.question.length == 0) {
         this.$swal('질문을 입력해주세요!', '어떻게 질문하면 이렇게 대답해야 할까요?', 'error')
         return false
@@ -164,7 +164,22 @@ export default {
         this.$swal('답변을 입력해주세요!', '이 질문엔 어떻게 대답해야 좋을까요?', 'error')
         return false
       } else {
-        this.$swal('Think B를 가르쳤어요!', '다음에는 이렇게 대답할게요!', 'success')
+        let form = new FormData()
+        form.append('question', this.question)
+        form.append('question', this.answer)
+
+        await axios.post('http://13.125.199.238:5000/Declaration', form)
+        .then( res => {
+          if (res["data"]["flag"]) {
+            this.$swal('Think B를 가르쳤어요!', '다음에는 이렇게 대답할게요!', 'success')
+          }
+          else {
+            this.$swal('문제가 생겼어요!', '다음에 다시 알려주세요!', 'error')
+          }
+        }).catch( err => {
+          console.log(err)
+          this.$swal('문제가 생겼어요!', '다음에 다시 알려주세요!', 'error')
+        })
       }
       this.dialog = false
       this.question = ""
