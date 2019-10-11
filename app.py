@@ -56,7 +56,7 @@ def getDB():
     conn = sqlite3.connect('./db/app.db')
     cur = conn.cursor()
 
-    cur.execute("select * from thinkB")
+    cur.execute("SELECT * FROM thinkB ORDER BY created_datetime DESC LIMIT 10")
     datas = cur.fetchall()
 
     conn.commit()
