@@ -91,6 +91,8 @@ def chat():
     comments = []
     if request.method == 'POST':
         text = request.form['text']
+        conn = sqlite3.connect('app.db')
+		c = conn.cursor() #이 밑으로 쿼리문
         answer = predict(text)
         comments.append({
             "text": text,
