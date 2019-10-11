@@ -1,5 +1,9 @@
 body{
-    background: #ddd;
+    background: lightblue;
+    background-image: url('poodle.png');
+    background-repeat: no-repeat;
+    background-position: 91% 90%;
+    background-size: 250px;
 }
 
 a {
