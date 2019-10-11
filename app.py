@@ -1,3 +1,6 @@
+from flask import Flask, render_template, request
+from flask_restful import Resource, abort, Api, reqparse
+from flask_cors import CORS
 import tensorflow as tf
 import sqlite3
 import os
@@ -13,6 +16,8 @@ import model as ml
 from configs import DEFINES
 
 app = Flask(__name__)
+api = Api(app)
+cors = CORS(app)
 
 # slack 연동 정보 입력 부분
 SLACK_TOKEN = "xoxb-728026288049-734244769025-K6y6Amjuqiga0LVVfJDKgiVP"
@@ -24,44 +29,41 @@ slack_web_client = WebClient(token=SLACK_TOKEN)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
-# Req. 2-2-1 대답 예측 함수 구현
 def predict(query):
-    char2idx,  idx2char, vocabulary_length = data.load_voc()
+    char2idx,  idx2char, _ = data.load_voc()
     predic_input_enc, _ = data.enc_processing([query], char2idx)
-    predic_target_dec, _ = data.dec_target_processing([""], char2idx)
+    predic_output_dec, _ = data.dec_output_processing([""], char2idx)
+    predic_target_dec = data.dec_target_processing([""], char2idx)
 
-    classifier = tf.estimator.Estimator(
-            model_fn=ml.Model, # 모델 등록한다.
-            model_dir=DEFINES.check_point_path, # 체크포인트 위치 등록한다.
-            params={ # 모델 쪽으로 파라메터 전달한다.
-                'hidden_size': DEFINES.hidden_size,  # 가중치 크기 설정한다.
-                'layer_size': DEFINES.layer_size,  # 멀티 레이어 층 개수를 설정한다.
-                'learning_rate': DEFINES.learning_rate,  # 학습율 설정한다.
-                'teacher_forcing_rate': DEFINES.teacher_forcing_rate, # 학습시 디코더 인풋 정답 지원율 설정
-                'vocabulary_length': vocabulary_length,  # 딕셔너리 크기를 설정한다.
-                'embedding_size': DEFINES.embedding_size,  # 임베딩 크기를 설정한다.
-                'embedding': DEFINES.embedding,  # 임베딩 사용 유무를 설정한다.
-                'multilayer': DEFINES.multilayer,  # 멀티 레이어 사용 유무를 설정한다.
-                'attention': DEFINES.attention, #  어텐션 지원 유무를 설정한다.
-                'teacher_forcing': DEFINES.teacher_forcing, # 학습시 디코더 인풋 정답 지원 유무 설정한다.
-                'loss_mask': DEFINES.loss_mask, # PAD에 대한 마스크를 통한 loss를 제한 한다.
-            })
-    
-    predictions = classifier.predict(input_fn=lambda:data.eval_input_fn(predic_input_enc, predic_target_dec, DEFINES.batch_size))
-
-    answer, _ = data.pred_next_string(predictions, idx2char)
-
+    predictor_fn = tf.contrib.predictor.from_saved_model(
+            export_dir="./data_out/model/1569981326"
+        )
+        
+    predictions = predictor_fn({'input':predic_input_enc, 'output':predic_output_dec, 'target':predic_target_dec})
+    answer = data.model_pred(predictions, idx2char)
     return answer
 
 
-# Req 2-2-2. app.db 를 연동하여 웹에서 주고받는 데이터를 DB로 저장
-def insertDB(text):
-    conn = sqlite3.connect('../DB/app.db')
+def insertDB(q, a):
+    conn = sqlite3.connect('./db/app.db')
     cur = conn.cursor()
-    cur.execute("insert into search_history (query) values (:query)", {'query':text})
+    cur.execute("insert into thinkB (question, answer) values (:question, :answer)", {'question': q, 'answer': a})
     conn.commit()
     conn.close()
-    
+
+
+def getDB():
+    conn = sqlite3.connect('./db/app.db')
+    cur = conn.cursor()
+
+    cur.execute("select * from thinkB")
+    datas = cur.fetchall()
+
+    conn.commit()
+    conn.close()
+
+    return datas
+
 
 # 챗봇이 멘션을 받았을 경우
 @slack_events_adaptor.on("app_mention")
@@ -80,30 +82,88 @@ def app_mentioned(event_data):
 
     return True
 
+class Declaration(Resource):
+    def post(self):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('question', type=str)
+            parser.add_argument('answer', type=str)
+            args = parser.parse_args()
+            _question = args['question']
+            _answer = args['answer']
 
-@app.route('/')
+            insertDB(_question, _answer)
+
+            datas = {
+                'flag': True,
+                'message': "Save Success"
+            }
+
+            return datas
+
+        except Exception as e:
+
+            datas = {
+                'flag': False,
+                'answer': str(e)
+            }
+            
+            return datas
+            
+    def get(self):
+        try:
+            data_list = getDB()
+
+            datas = {
+                'flag': True,
+                'datas': data_list
+            }
+
+            return datas
+        
+        except Exception as e:
+
+            datas = {
+                'flag': False,
+                'answer': str(e)
+            }
+            
+            return datas
+
+class Chat(Resource):
+    def post(self):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('question', type=str)
+
+            args = parser.parse_args()
+
+            _question = args['question']
+            _answer = predict(_question)
+
+            datas = {
+                'flag': True,
+                'answer': _answer
+            }
+            
+            return datas
+
+        except Exception as e:
+            datas = {
+                'flag': False,
+                'answer': str(e)
+            }
+            return datas
+
+
+api.add_resource(Declaration, '/Declaration')
+api.add_resource(Chat, '/chat')
+
+
+@app.route("/", methods=["GET"])
 def index():
-	return render_template('index.html')
+    return render_template('readme.html')
 
 
-comments = []
-@app.route('/chat', methods = ['POST', 'GET'])
-def chat():
-    if request.method == 'POST':
-        text = request.form['text']
-        answer = predict(text)
-        comments.append({
-            "text": text,
-            "answer": answer
-        })
-        return render_template('chat.html', comments=comments)
-    
-    elif request.method == 'GET':
-        return render_template('chat.html', comment=comments)
-
-@app.route('/about')
-def about():
-	return render_template('about.html')
-
-if __name__ == '__main__':
-    app.run()
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0")
