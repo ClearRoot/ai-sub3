@@ -127,34 +127,58 @@ export default {
     }
   },
   methods: {
-    onType: function (event){
-      //here you can set any behavior
-    },
+    onType: function(){},
     onMessageSubmit: async function(message){
       message.content = message.content.replace(/\n/g, "")
 
-      const axios = require('axios')
-
-      let form = new FormData()
-      form.append('question', message["content"])
-
-      this.messages.push(message)
-
-      await axios.post('http://13.125.199.238:5000/chat', form)
+      if (message.content == "UUDDLRLRBA"){
+        this.messages.push(message)
+        const axios = require('axios')
+        await axios.get('http://13.125.199.238:5000/Declaration')
         .then( res => {
-          let answer = {
-            content: res["data"]["answer"],
-            myself: false,
-            participantId: 1,
-            timestamp: { year: 0, month: 0, day: 0, hour: 0, minute: 0, second: 0, millisecond: 0 },
-            uploaded: true
+          let datas = res.data.datas
+          let N = datas.length
+          for (var i = 0; i < N; i++){
+            let answer = {
+              content: "Q: " + (datas[i][1]) + "\nA: " + (datas[i][2]),
+              myself: false,
+              participantId: 1,
+              timestamp: { year: 0, month: 0, day: 0, hour: 0, minute: 0, second: 0, millisecond: 0 },
+              uploaded: true
+            }
+            this.messages.push(answer)
           }
-          this.messages.push(answer)
-          message.uploaded = true
-        }).catch( err => {
-          console.log(err)
+        }).catch(e => {
+          console.log(e)
           this.$swal('문제가 생겼어요!', '다음에 다시 대화해요!', 'error')
         })
+        message.uploaded = true
+
+      }else {
+        const axios = require('axios')
+
+        let form = new FormData()
+        form.append('question', message["content"])
+
+        this.messages.push(message)
+
+        await axios.post('http://13.125.199.238:5000/chat', form)
+          .then( res => {
+            let answer = {
+              content: res["data"]["answer"],
+              myself: false,
+              participantId: 1,
+              timestamp: { year: 0, month: 0, day: 0, hour: 0, minute: 0, second: 0, millisecond: 0 },
+              uploaded: true
+            }
+            this.messages.push(answer)
+            message.uploaded = true
+          }).catch( err => {
+            console.log(err)
+            this.$swal('문제가 생겼어요!', '다음에 다시 대화해요!', 'error')
+            message.uploaded = true
+          })
+      }
     },
     createData: async function() {
       if (this.question.length == 0) {
@@ -166,8 +190,9 @@ export default {
       } else {
         let form = new FormData()
         form.append('question', this.question)
-        form.append('question', this.answer)
+        form.append('answer', this.answer)
 
+        const axios = require('axios')
         await axios.post('http://13.125.199.238:5000/Declaration', form)
         .then( res => {
           if (res["data"]["flag"]) {
@@ -189,7 +214,7 @@ export default {
       this.dialog = false
       this.question = ""
       this.answer = ""
-    },
+    }
   }
 }
 </script>
