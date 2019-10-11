@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request
 from flask_restful import Resource, abort, Api, reqparse
+from flask_cors import CORS
 import tensorflow as tf
 import sqlite3
 import os
@@ -16,6 +17,7 @@ from configs import DEFINES
 
 app = Flask(__name__)
 api = Api(app)
+cors = CORS(app)
 
 # slack 연동 정보 입력 부분
 SLACK_TOKEN = "xoxb-728026288049-734244769025-K6y6Amjuqiga0LVVfJDKgiVP"
@@ -48,6 +50,19 @@ def insertDB(q, a):
     cur.execute("insert into thinkB (question, answer) values (:question, :answer)", {'question': q, 'answer': a})
     conn.commit()
     conn.close()
+
+
+def getDB():
+    conn = sqlite3.connect('./db/app.db')
+    cur = conn.cursor()
+
+    cur.execute("select * from thinkB")
+    datas = cur.fetchall()
+
+    conn.commit()
+    conn.close()
+
+    return datas
 
 
 # 챗봇이 멘션을 받았을 경우
@@ -94,6 +109,26 @@ class Declaration(Resource):
             }
             
             return datas
+            
+    def get(self):
+        try:
+            data_list = getDB()
+
+            datas = {
+                'flag': True,
+                'datas': data_list
+            }
+
+            return datas
+        
+        except Exception as e:
+
+            datas = {
+                'flag': False,
+                'answer': str(e)
+            }
+            
+            return datas
 
 class Chat(Resource):
     def post(self):
@@ -131,4 +166,4 @@ def index():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")
