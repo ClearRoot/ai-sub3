@@ -85,10 +85,10 @@ export default {
       },
       messages: [
         {
-          content: 'received messages', 
+          content: '안녕하세요 ThinkB입니다.', 
           myself: false,
           participantId: 1,
-          timestamp: { year: 2019, month: 3, day: 5, hour: 20, minute: 10, second: 3, millisecond: 123 },
+          timestamp: { year: 0, month: 0, day: 0, hour: 0, minute: 0, second: 0, millisecond: 0 },
           uploaded: true
         }
       ],
@@ -127,26 +127,60 @@ export default {
     }
   },
   methods: {
-    onType: function (event){
-      //here you can set any behavior
-    },
-    onMessageSubmit: function(message){
-      /*
-      * example simulating an upload callback. 
-      * It's important to notice that even when your message wasn't send 
-      * yet to the server you have to add the message into the array
-      */
-      this.messages.push(message)
-      
-      /*
-      * you can update message state after the server response
-      */
-      // timeout simulating the request
-      setTimeout(() => {
+    onType: function(){},
+    onMessageSubmit: async function(message){
+      message.content = message.content.replace(/\n/g, "")
+
+      if (message.content == "UUDDLRLRBA"){
+        this.messages.push(message)
+        const axios = require('axios')
+        await axios.get('http://13.125.199.238:5000/Declaration')
+        .then( res => {
+          let datas = res.data.datas
+          let N = datas.length
+          for (var i = 0; i < N; i++){
+            let answer = {
+              content: "Q: " + (datas[i][1]) + "\nA: " + (datas[i][2]),
+              myself: false,
+              participantId: 1,
+              timestamp: { year: 0, month: 0, day: 0, hour: 0, minute: 0, second: 0, millisecond: 0 },
+              uploaded: true
+            }
+            this.messages.push(answer)
+          }
+        }).catch(e => {
+          console.log(e)
+          this.$swal('문제가 생겼어요!', '다음에 다시 대화해요!', 'error')
+        })
         message.uploaded = true
-      }, 2000)
+
+      }else {
+        const axios = require('axios')
+
+        let form = new FormData()
+        form.append('question', message["content"])
+
+        this.messages.push(message)
+
+        await axios.post('http://13.125.199.238:5000/chat', form)
+          .then( res => {
+            let answer = {
+              content: res["data"]["answer"],
+              myself: false,
+              participantId: 1,
+              timestamp: { year: 0, month: 0, day: 0, hour: 0, minute: 0, second: 0, millisecond: 0 },
+              uploaded: true
+            }
+            this.messages.push(answer)
+            message.uploaded = true
+          }).catch( err => {
+            console.log(err)
+            this.$swal('문제가 생겼어요!', '다음에 다시 대화해요!', 'error')
+            message.uploaded = true
+          })
+      }
     },
-    createData: function() {
+    createData: async function() {
       if (this.question.length == 0) {
         this.$swal('질문을 입력해주세요!', '어떻게 질문하면 이렇게 대답해야 할까요?', 'error')
         return false
@@ -154,7 +188,23 @@ export default {
         this.$swal('답변을 입력해주세요!', '이 질문엔 어떻게 대답해야 좋을까요?', 'error')
         return false
       } else {
-        this.$swal('Think B를 가르쳤어요!', '다음에는 이렇게 대답할게요!', 'success')
+        let form = new FormData()
+        form.append('question', this.question)
+        form.append('answer', this.answer)
+
+        const axios = require('axios')
+        await axios.post('http://13.125.199.238:5000/Declaration', form)
+        .then( res => {
+          if (res["data"]["flag"]) {
+            this.$swal('Think B를 가르쳤어요!', '다음에는 이렇게 대답할게요!', 'success')
+          }
+          else {
+            this.$swal('문제가 생겼어요!', '다음에 다시 알려주세요!', 'error')
+          }
+        }).catch( err => {
+          console.log(err)
+          this.$swal('문제가 생겼어요!', '다음에 다시 알려주세요!', 'error')
+        })
       }
       this.dialog = false
       this.question = ""
@@ -164,7 +214,7 @@ export default {
       this.dialog = false
       this.question = ""
       this.answer = ""
-    },
+    }
   }
 }
 </script>
