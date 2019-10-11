@@ -1,4 +1,4 @@
-from konlpy.tag import Kkma, Okt
+from konlpy.tag import Okt
 import pandas as pd
 import tensorflow as tf
 import enum
@@ -49,21 +49,22 @@ def prepro_noise_canceling(data):
 def tokenizing_data(data):
     tokens_list = []
     data = prepro_noise_canceling(data)
-    
+
     for d in data:
         for token in d.split():
-            tokens_list.append(token)
-    
+            if token:
+                tokens_list.append(token)
     return tokens_list
 
 
 # 형태소 분석
 def prepro_like_morphlized(data):
-    morph_analyzer = Okt()
-    result_data = list()
+    okt = Okt()
+    result_data = []
 
     for seq in data:
-        morphlized_seq = " ".join(morph_analyzer.morphs(seq.replace(" ", "")))
+        tokens = okt.morphs(seq)
+        morphlized_seq = " ".join(tokens)
         result_data.append(morphlized_seq)
 
     return result_data
@@ -91,35 +92,52 @@ def enc_processing(value, dictionary):
             
         seq_len.append(len(seq_index))
         seq_index += [dictionary[PAD]] * (DEFINES.max_sequence_length - len(seq_index))
-        seq_index.reverse()
         seq_input_index.append(seq_index)
         
     return np.asarray(seq_input_index), seq_len
 
 
-# Req 1-2-3. 디코더에 필요한 데이터 전 처리 
-def dec_target_processing(value, dictionary):
-    seq_input_index = []
+# Req 1-2-2. 디코더에 필요한 데이터 전 처리 
+def dec_output_processing(value, dictionary):
+    seq_output_index = []
     seq_len = []
 
     value = prepro_noise_canceling(value)
 
-    if DEFINES.xavier_initializer:
+    if DEFINES.tokenize_as_morph:
+        value = prepro_like_morphlized(value)
+    
+    for seq in value:
+        seq_index =[]
+        
+        seq_index = [dictionary[STD]] + [dictionary[word] for word in seq.split()]
+                
+        if len(seq_index) > DEFINES.max_sequence_length:
+            seq_index = seq_index[:DEFINES.max_sequence_length]
+            
+        seq_len.append(len(seq_index))
+        seq_index += [dictionary[PAD]] * (DEFINES.max_sequence_length - len(seq_index))
+        seq_output_index.append(seq_index)
+    
+    return np.asarray(seq_output_index), seq_len
+
+
+# Req 1-2-3. 디코더에 필요한 데이터 전 처리 
+def dec_target_processing(value, dictionary):
+    seq_target_index = []
+
+    value = prepro_noise_canceling(value)
+
+    if DEFINES.tokenize_as_morph:
         value = prepro_like_morphlized(value)
     
     for seq in value:
         seq_index = [dictionary[word] for word in seq.split()]
         seq_index = seq_index[:DEFINES.max_sequence_length-1] + [dictionary[END]]
-        seq_len.append(len(seq_index))
         seq_index += [dictionary[PAD]] * (DEFINES.max_sequence_length - len(seq_index))
-        seq_input_index.append(seq_index)
+        seq_target_index.append(seq_index)
    
-    return np.asarray(seq_input_index), np.asarray(seq_len)
-
-
-def rearrange(input, target):
-    features = {"input": input}
-    return features, target
+    return np.asarray(seq_target_index)
 
 
 # input과 output dictionary를 만드는 함수
@@ -129,13 +147,13 @@ def in_out_dict(input, output, target):
 
 
 # 학습에 들어가 배치 데이터를 만드는 함수
-def train_input_fn(train_input_enc, train_target_dec_length, train_target_dec, batch_size):
-    dataset = tf.data.Dataset.from_tensor_slices((train_input_enc, train_target_dec_length, train_target_dec))
+def train_input_fn(train_input_enc, train_output_dec, train_target_dec, batch_size):
+    dataset = tf.data.Dataset.from_tensor_slices((train_input_enc, train_output_dec, train_target_dec))
     dataset = dataset.shuffle(buffer_size=len(train_input_enc))
 
     assert batch_size is not None, "train batchSize must not be None"
-
-    dataset = dataset.batch(batch_size)
+    
+    dataset = dataset.batch(batch_size, drop_remainder=True)
     dataset = dataset.map(in_out_dict)
     dataset = dataset.repeat()
     iterator = dataset.make_one_shot_iterator()
@@ -144,18 +162,77 @@ def train_input_fn(train_input_enc, train_target_dec_length, train_target_dec, b
 
 
 # 평가에 들어가 배치 데이터를 만드는 함수
-def eval_input_fn(eval_input_enc, eval_target_dec, batch_size):
-    dataset = tf.data.Dataset.from_tensor_slices((eval_input_enc, eval_target_dec))
+def eval_input_fn(eval_input_enc, eval_output_dec, eval_target_dec, batch_size):
+    dataset = tf.data.Dataset.from_tensor_slices((eval_input_enc, eval_output_dec, eval_target_dec))
     dataset = dataset.shuffle(buffer_size=len(eval_input_enc))
 
     assert batch_size is not None, "eval batchSize must not be None"
 
-    dataset = dataset.batch(batch_size)
-    dataset = dataset.map(rearrange)
+    dataset = dataset.batch(batch_size, drop_remainder=True)
+    dataset = dataset.map(in_out_dict)
     dataset = dataset.repeat(1)
     iterator = dataset.make_one_shot_iterator()
 
     return iterator.get_next()
+
+
+# Req 1-3-3. 예측용 단어 인덱스를 문장으로 변환
+def pred2string(value, dictionary):
+    string_list = []
+    
+    for v in value:
+        for index in v["indexs"]:
+            string_list.append(dictionary[index])
+    
+    answer = ""
+    
+    for word in string_list:
+        if word not in PAD and word not in END:
+            answer += word
+            answer += " "
+            
+    return answer
+
+
+def pred_next_string(value, dictionary):
+    string_list = []
+    is_finished = False
+    
+    for v in value:
+        for index in v["indexs"]:
+            string_list.append(dictionary[index])
+    
+    answer = ""
+    
+    for word in string_list:
+        if word == END:
+            is_finished = True
+            break
+
+        if word != PAD and word != END:
+            answer += word
+            answer += " "
+            
+    return answer, is_finished
+
+
+def model_pred(value, dictionary):
+    string_list = []
+
+    for index in value["indexs"][0]:
+        string_list.append(dictionary[index])
+
+    answer = ""
+
+    for word in string_list:
+        if word == END:
+            break
+
+        if word != PAD and word != END:
+            answer += word
+            answer += " "
+            
+    return answer
 
 
 # Req 1-3-1. 단어 사전 파일 vocabularyData.voc를 생성하고 단어와 인덱스 관계를 출력
@@ -166,9 +243,12 @@ def load_voc():
         data_df = pd.read_csv(DEFINES.data_path, encoding="utf-8")
         question, answer = data_df["Q"], data_df["A"]
 
+        question = prepro_noise_canceling(question)
+        answer = prepro_noise_canceling(answer)
+
         question = prepro_like_morphlized(question)
 
-        if DEFINES.xavier_initializer:
+        if DEFINES.tokenize_as_morph:
             answer = prepro_like_morphlized(answer)
 
         data = []
@@ -202,29 +282,10 @@ def make_voc(voc_list):
     idx_to_word = {idx: word for idx, word in enumerate(voc_list)}
     return word_to_idx, idx_to_word
 
-
-# Req 1-3-3. 예측용 단어 인덱스를 문장으로 변환
-def pred_next_string(value, dictionary):
-    string_list = []
-    
-    for v in value:
-        for index in v["indexs"]:
-            string_list.append(dictionary[index])
-    
-    answer = ""
-    
-    for word in string_list:
-        if word not in PAD and word not in END:
-            answer += word
-            answer += " "
-            
-    return answer, True
-    
     
 def main(self):
     char2idx, idx2char, voc_length = load_voc()
-
+    return char2idx, idx2char, voc_length
 
 if __name__ == '__main__':
-    tf.logging.set_verbosity(tf.logging.INFO)
     tf.app.run(main)
